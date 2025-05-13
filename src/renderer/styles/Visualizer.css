@@ -1,0 +1,59 @@
+/* Styles for the Visualizer component */
+
+.visualizer-container {
+  flex: 3;
+  position: relative;
+  background-color: #000;
+  overflow: hidden;
+}
+
+.visualizer-canvas {
+  display: block;
+  width: 100%;
+  height: 100%;
+}
+
+.visualizer-overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  background-color: rgba(0, 0, 0, 0.7);
+  z-index: 10;
+}
+
+.play-message {
+  text-align: center;
+  color: rgba(255, 255, 255, 0.7);
+}
+
+.play-message i {
+  font-size: 3rem;
+  margin-bottom: 1rem;
+}
+
+.play-message p {
+  font-size: 1.2rem;
+  letter-spacing: 1px;
+}
+
+/* Visualization specific styles */
+.cosmic-visualization {
+  background: radial-gradient(circle, #1a0b2e 0%, #000000 100%);
+}
+
+.weather-visualization {
+  background: linear-gradient(to bottom, #1a214d 0%, #394a6d 100%);
+}
+
+.nightsky-visualization {
+  background: linear-gradient(to bottom, #000819 0%, #0d1f2d 100%);
+}
+
+.concert-visualization {
+  background: #000000;
+}
