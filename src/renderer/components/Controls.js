@@ -26,7 +26,8 @@ const Controls = ({
   // Available visualization themes
   const themes = [
     { id: 'cosmic', name: 'Cosmic' },
-    { id: 'weather', name: 'Weather' },
+    { id: 'fractal', name: '3D Fractals' },
+    { id: 'galaxy', name: 'Galaxy' },
     { id: 'nightsky', name: 'Night Sky' },
     { id: 'concert', name: 'Concert' }
   ];
@@ -88,7 +89,7 @@ const Controls = ({
 
       <div className="control-section">
         <h3>Visualization Theme</h3>
-        <div className="control-options theme-options">
+        <div className="control-options theme-options-grid">
           {themes.map(themeOption => (
             <button
               key={themeOption.id}

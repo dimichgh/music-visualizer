@@ -6,7 +6,7 @@ import AudioFileAnalyzer from '../audio/AudioFileAnalyzer';
 
 const App = () => {
   // State for visualization settings and audio data
-  const [visualizationTheme, setVisualizationTheme] = useState('cosmic');
+  const [visualizationTheme, setVisualizationTheme] = useState('galaxy');
   const [audioData, setAudioData] = useState(null);
   const [isPlaying, setIsPlaying] = useState(false);
   const [audioSources, setAudioSources] = useState([]);

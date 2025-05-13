@@ -8,9 +8,10 @@ import {
   VisualizationManager, 
   BaseVisualization, 
   CosmicVisualization,
-  WeatherVisualization,
+  FractalVisualization,
   NightSkyVisualization,
-  ConcertVisualization
+  ConcertVisualization,
+  GalaxyVisualization
 } from '../visualizations';
 
 // Singleton instance of the visualization manager
@@ -50,13 +51,13 @@ export const createCosmicVisualization = (ctx, dimensions) => {
 };
 
 /**
- * Creates a weather-themed visualization (compatible with existing code)
+ * Creates a 3D fractal visualization (compatible with existing code)
  * @param {CanvasRenderingContext2D} ctx - Canvas rendering context
  * @param {Object} dimensions - Canvas dimensions {width, height}
  * @returns {Object} Visualization object with render method
  */
-export const createWeatherVisualization = (ctx, dimensions) => {
-  const visualization = new WeatherVisualization();
+export const createFractalVisualization = (ctx, dimensions) => {
+  const visualization = new FractalVisualization();
   
   visualization.setup(ctx, dimensions);
   
@@ -107,12 +108,32 @@ export const createConcertVisualization = (ctx, dimensions) => {
 };
 
 /**
+ * Creates a galaxy visualization using Three.js (compatible with existing code)
+ * @param {CanvasRenderingContext2D} ctx - Canvas rendering context
+ * @param {Object} dimensions - Canvas dimensions {width, height}
+ * @returns {Object} Visualization object with render method
+ */
+export const createGalaxyVisualization = (ctx, dimensions) => {
+  const visualization = new GalaxyVisualization();
+  
+  visualization.setup(ctx, dimensions);
+  
+  // Return compatible render interface
+  return {
+    render: (audioData) => {
+      visualization.render(ctx, dimensions, audioData);
+    }
+  };
+};
+
+/**
  * Default export - all visualization creators
  */
 export default {
   createCosmicVisualization,
-  createWeatherVisualization,
+  createFractalVisualization,
   createNightSkyVisualization,
   createConcertVisualization,
+  createGalaxyVisualization,
   getVisualizationManager
 };

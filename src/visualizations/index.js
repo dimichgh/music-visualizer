@@ -5,9 +5,10 @@
 
 import VisualizationManager from './VisualizationManager';
 import CosmicVisualization from './CosmicVisualization';
-import WeatherVisualization from './WeatherVisualization';
+import FractalVisualization from './FractalVisualization';
 import NightSkyVisualization from './NightSkyVisualization';
 import ConcertVisualization from './ConcertVisualization';
+import GalaxyVisualization from './GalaxyVisualization';
 import BaseVisualization from './BaseVisualization';
 
 // Export visualization classes for direct usage
@@ -15,9 +16,10 @@ export {
   VisualizationManager,
   BaseVisualization,
   CosmicVisualization,
-  WeatherVisualization,
+  FractalVisualization,
   NightSkyVisualization,
-  ConcertVisualization
+  ConcertVisualization,
+  GalaxyVisualization
 };
 
 /**
@@ -52,20 +54,20 @@ function registerVisualizations(manager) {
     tags: ['space', 'psychedelic', 'particles']
   });
   
-  // Register weather visualization
-  manager.registerVisualization('weather', WeatherVisualization, {
-    name: 'Weather Storm',
-    description: 'A weather-themed visualization with clouds, rain, and lightning',
+  // Register fractal visualization
+  manager.registerVisualization('fractal', FractalVisualization, {
+    name: '3D Fractals',
+    description: 'A psychedelic 3D fractal visualization with audio-reactive geometry',
     author: 'Music Visualizer',
-    tags: ['weather', 'atmospheric', 'particles']
+    tags: ['3d', 'fractal', 'psychedelic']
   });
   
-  // Register night sky visualization
-  manager.registerVisualization('nightsky', NightSkyVisualization, {
-    name: 'Night Sky',
-    description: 'A serene night sky with stars, moon, and northern lights',
+  // Register galaxy visualization 
+  manager.registerVisualization('galaxy', GalaxyVisualization, {
+    name: 'Galaxy',
+    description: 'A flowing and dynamic visualization of galaxies using Three.js',
     author: 'Music Visualizer',
-    tags: ['night', 'calm', 'stars']
+    tags: ['space', 'psychedelic', '3d', 'cosmos']
   });
   
   // Register concert visualization
@@ -84,5 +86,7 @@ export default {
   createVisualizationManager,
   VisualizationManager,
   BaseVisualization,
-  CosmicVisualization
+  CosmicVisualization,
+  FractalVisualization,
+  GalaxyVisualization
 };

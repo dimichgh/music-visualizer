@@ -134,9 +134,10 @@ select:focus {
 }
 
 /* Theme selection buttons */
-.theme-options {
+.theme-options,
+.theme-options-grid {
   display: grid;
-  grid-template-columns: 1fr 1fr;
+  grid-template-columns: repeat(auto-fill, minmax(130px, 1fr));
   gap: 0.5rem;
 }
 
@@ -248,7 +249,14 @@ input[type="range"]:hover::-moz-range-thumb {
     padding: 1rem;
   }
   
-  .theme-options {
+  .theme-options,
+  .theme-options-grid {
     grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+@media (max-width: 480px) {
+  .theme-options-grid {
+    grid-template-columns: 1fr;
   }
 }

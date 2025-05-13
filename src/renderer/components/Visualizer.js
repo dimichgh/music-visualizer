@@ -1,6 +1,6 @@
 import React, { useRef, useEffect, useState } from 'react';
 import '../styles/Visualizer.css';
-import { createCosmicVisualization, createWeatherVisualization, createNightSkyVisualization, createConcertVisualization } from '../visualizationBridge';
+import { createCosmicVisualization, createFractalVisualization, createNightSkyVisualization, createConcertVisualization, createGalaxyVisualization } from '../visualizationBridge';
 
 const Visualizer = ({ audioData, theme, isPlaying }) => {
   const canvasRef = useRef(null);
@@ -37,8 +37,11 @@ const Visualizer = ({ audioData, theme, isPlaying }) => {
       case 'cosmic':
         visualizationRef.current = createCosmicVisualization(ctx, dimensions);
         break;
-      case 'weather':
-        visualizationRef.current = createWeatherVisualization(ctx, dimensions);
+      case 'fractal':
+        visualizationRef.current = createFractalVisualization(ctx, dimensions);
+        break;
+      case 'galaxy':
+        visualizationRef.current = createGalaxyVisualization(ctx, dimensions);
         break;
       case 'nightsky':
         visualizationRef.current = createNightSkyVisualization(ctx, dimensions);
