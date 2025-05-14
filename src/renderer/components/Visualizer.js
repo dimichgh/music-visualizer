@@ -27,37 +27,63 @@ const Visualizer = ({ audioData, theme, isPlaying }) => {
     };
   }, []);
 
+  // Track the current theme with a ref to detect actual theme changes
+  const currentThemeRef = useRef(null); // Initialize as null to ensure first render creates visualization
+  
   // Initialize visualization based on selected theme
   useEffect(() => {
-    if (!canvasRef.current) return;
-
-    const ctx = canvasRef.current.getContext('2d');
+    if (!canvasRef.current || !dimensions.width || !dimensions.height) return;
     
-    switch (theme) {
-      case 'cosmic':
-        visualizationRef.current = createCosmicVisualization(ctx, dimensions);
-        break;
-      case 'fractal':
-        visualizationRef.current = createFractalVisualization(ctx, dimensions);
-        break;
-      case 'galaxy':
-        visualizationRef.current = createGalaxyVisualization(ctx, dimensions);
-        break;
-      case 'nightsky':
-        visualizationRef.current = createNightSkyVisualization(ctx, dimensions);
-        break;
-      case 'concert':
-        visualizationRef.current = createConcertVisualization(ctx, dimensions);
-        break;
-      default:
-        visualizationRef.current = createCosmicVisualization(ctx, dimensions);
-    }
-
-    // Initial render
-    if (visualizationRef.current) {
-      visualizationRef.current.render(null);
+    const needsInitialization = (
+      // Create a new visualization if theme changed OR visualization doesn't exist yet
+      currentThemeRef.current !== theme || 
+      !visualizationRef.current
+    );
+    
+    if (needsInitialization) {
+      console.log(`Creating ${theme} visualization (previous theme: ${currentThemeRef.current})`);
+      currentThemeRef.current = theme;
+      
+      const ctx = canvasRef.current.getContext('2d');
+      
+      switch (theme) {
+        case 'cosmic':
+          visualizationRef.current = createCosmicVisualization(ctx, dimensions);
+          break;
+        case 'fractal':
+          visualizationRef.current = createFractalVisualization(ctx, dimensions);
+          break;
+        case 'galaxy':
+          visualizationRef.current = createGalaxyVisualization(ctx, dimensions);
+          console.log('Galaxy visualization created:', !!visualizationRef.current);
+          break;
+        case 'nightsky':
+          visualizationRef.current = createNightSkyVisualization(ctx, dimensions);
+          break;
+        case 'concert':
+          visualizationRef.current = createConcertVisualization(ctx, dimensions);
+          break;
+        default:
+          visualizationRef.current = createCosmicVisualization(ctx, dimensions);
+      }
+      
+      // Initial render
+      if (visualizationRef.current) {
+        visualizationRef.current.render(null);
+      }
     }
   }, [theme, dimensions]);
+  
+  // Handle dimension changes separately - resize but don't recreate visualization
+  useEffect(() => {
+    if (!canvasRef.current || !visualizationRef.current || !dimensions.width || !dimensions.height) return;
+    
+    // Here we could implement a resize handler if needed
+    console.log(`Canvas dimensions changed: ${dimensions.width}x${dimensions.height}`);
+    
+    // Re-render with current dimensions
+    visualizationRef.current.render(null);
+  }, [dimensions]);
 
   // Animation loop for rendering visualizations
   useEffect(() => {

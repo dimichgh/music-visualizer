@@ -116,35 +116,170 @@ const Controls = ({
 
       <div className="control-section">
         <h3>Visualization Controls</h3>
-        <div className="control-options sliders">
-          <div className="slider-control">
-            <label>Sensitivity</label>
-            <input 
-              type="range" 
-              min="0" 
-              max="100" 
-              defaultValue="50" 
-            />
+        
+        {/* Galaxy-specific controls */}
+        {theme === 'galaxy' && (
+          <div className="control-options sliders">
+            <div className="slider-control">
+              <label>Camera Distance</label>
+              <input 
+                type="range" 
+                min="20" 
+                max="150" 
+                defaultValue="60" 
+                onChange={(e) => {
+                  const value = parseFloat(e.target.value);
+                  console.log(`Camera Distance slider changed to: ${value}`);
+                  
+                  // Try to use the bridge to update the config
+                  if (window.visualizationBridge) {
+                    // Try to debug the bridge first
+                    window.visualizationBridge.debug && window.visualizationBridge.debug();
+                    
+                    // Update via the bridge method
+                    window.visualizationBridge.updateGalaxyConfig('cameraDistance', value);
+                    
+                    // Also try direct update as a fallback
+                    const galaxy = window.visualizationBridge.getCurrentGalaxy && window.visualizationBridge.getCurrentGalaxy();
+                    if (galaxy) {
+                      galaxy.updateConfig('cameraDistance', value);
+                    }
+                  } else {
+                    console.error('visualizationBridge not found on window!');
+                  }
+                }}
+              />
+            </div>
+            <div className="slider-control">
+              <label>Camera Speed</label>
+              <input 
+                type="range" 
+                min="0.01" 
+                max="0.5" 
+                step="0.01"
+                defaultValue="0.12" 
+                onChange={(e) => {
+                  const value = parseFloat(e.target.value);
+                  console.log(`Camera Speed slider changed to: ${value}`);
+                  if (window.visualizationBridge) {
+                    window.visualizationBridge.updateGalaxyConfig('cameraSpeed', value);
+                  } else {
+                    console.error('visualizationBridge not found on window!');
+                  }
+                }}
+              />
+            </div>
+            <div className="slider-control">
+              <label>Motion Damping</label>
+              <input 
+                type="range" 
+                min="0.8" 
+                max="0.99" 
+                step="0.01"
+                defaultValue="0.98" 
+                onChange={(e) => {
+                  const value = parseFloat(e.target.value);
+                  console.log(`Motion Damping slider changed to: ${value}`);
+                  if (window.visualizationBridge) {
+                    window.visualizationBridge.updateGalaxyConfig('cameraDamping', value);
+                  } else {
+                    console.error('visualizationBridge not found on window!');
+                  }
+                }}
+              />
+            </div>
+            <div className="slider-control">
+              <label>Brightness</label>
+              <input 
+                type="range" 
+                min="0.1" 
+                max="3.0" 
+                step="0.05"
+                defaultValue="1.0" 
+                onChange={(e) => {
+                  const value = parseFloat(e.target.value);
+                  console.log(`Brightness slider changed to: ${value}`);
+                  if (window.visualizationBridge) {
+                    window.visualizationBridge.updateGalaxyConfig('brightness', value);
+                  } else {
+                    console.error('visualizationBridge not found on window!');
+                  }
+                }}
+              />
+            </div>
+            <div className="slider-control">
+              <label>Glow Strength</label>
+              <input 
+                type="range" 
+                min="0.1" 
+                max="2.0" 
+                step="0.05"
+                defaultValue="0.7" 
+                onChange={(e) => {
+                  const value = parseFloat(e.target.value);
+                  console.log(`Glow Strength slider changed to: ${value}`);
+                  if (window.visualizationBridge) {
+                    window.visualizationBridge.updateGalaxyConfig('bloomStrength', value);
+                  } else {
+                    console.error('visualizationBridge not found on window!');
+                  }
+                }}
+              />
+            </div>
+            <div className="slider-control">
+              <label>Glow Threshold</label>
+              <input 
+                type="range" 
+                min="0.1" 
+                max="1.0" 
+                step="0.05"
+                defaultValue="0.85" 
+                onChange={(e) => {
+                  const value = parseFloat(e.target.value);
+                  console.log(`Glow Threshold slider changed to: ${value}`);
+                  if (window.visualizationBridge) {
+                    window.visualizationBridge.updateGalaxyConfig('bloomThreshold', value);
+                  } else {
+                    console.error('visualizationBridge not found on window!');
+                  }
+                }}
+              />
+            </div>
           </div>
-          <div className="slider-control">
-            <label>Speed</label>
-            <input 
-              type="range" 
-              min="0" 
-              max="100" 
-              defaultValue="50" 
-            />
+        )}
+        
+        {/* Default controls for other visualizations */}
+        {theme !== 'galaxy' && (
+          <div className="control-options sliders">
+            <div className="slider-control">
+              <label>Sensitivity</label>
+              <input 
+                type="range" 
+                min="0" 
+                max="100" 
+                defaultValue="50" 
+              />
+            </div>
+            <div className="slider-control">
+              <label>Speed</label>
+              <input 
+                type="range" 
+                min="0" 
+                max="100" 
+                defaultValue="50" 
+              />
+            </div>
+            <div className="slider-control">
+              <label>Intensity</label>
+              <input 
+                type="range" 
+                min="0" 
+                max="100" 
+                defaultValue="50" 
+              />
+            </div>
           </div>
-          <div className="slider-control">
-            <label>Intensity</label>
-            <input 
-              type="range" 
-              min="0" 
-              max="100" 
-              defaultValue="50" 
-            />
-          </div>
-        </div>
+        )}
       </div>
     </div>
   );

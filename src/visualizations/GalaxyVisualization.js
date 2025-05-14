@@ -49,6 +49,20 @@ const ChromaticAberrationShader = {
 
 class GalaxyVisualization extends BaseVisualization {
   constructor(options = {}) {
+    // Define default configurable parameters
+    const configDefaults = {
+      // Camera parameters
+      cameraDistance: 60,       // How far the camera is from the scene
+      cameraSpeed: 0.12,        // Speed of camera movement
+      cameraDamping: 0.98,      // How quickly camera movement slows down
+      
+      // Visual parameters
+      bloomStrength: 0.7,       // Base bloom effect strength
+      bloomThreshold: 0.85,     // Bloom threshold
+      centerHoleSize: 10,       // Size of the empty space in the center
+      brightness: 1.0,          // Overall brightness multiplier
+    };
+    
     // Call parent constructor with merged options
     super({
       name: 'Galaxy',
@@ -63,6 +77,25 @@ class GalaxyVisualization extends BaseVisualization {
       },
       ...options
     });
+    
+    // Set min/max ranges for controls - moved after super() call
+    this.controlRanges = {
+      cameraDistance: { min: 20, max: 150 },
+      cameraSpeed: { min: 0.01, max: 0.5 },
+      cameraDamping: { min: 0.8, max: 0.99 },
+      bloomStrength: { min: 0.1, max: 2.0 },
+      bloomThreshold: { min: 0.1, max: 1.0 },
+      brightness: { min: 0.1, max: 3.0 }
+    };
+    
+    // Store the default configuration values as a class property
+    this.configDefaults = configDefaults;
+    
+    // Initialize configurable parameters with defaults and any provided values
+    this.config = {
+      ...configDefaults,
+      ...(options.config || {})
+    };
     
     // Three.js specific properties
     this.scene = null;
@@ -82,13 +115,27 @@ class GalaxyVisualization extends BaseVisualization {
     this.colorShiftFactor = 0;
     this.emissionIntensity = 0;
     
-    // Camera animation
+    // Enhanced camera animation for flying through the scene
     this.cameraAnimation = {
-      targetPosition: new THREE.Vector3(0, 0, 25),
+      // Current position and target
+      position: new THREE.Vector3(0, 0, 50),   // Increased initial distance from orb
+      targetPosition: new THREE.Vector3(0, 0, 40), // Increased target distance
+      
+      // Flight path control
+      flightRadius: 45,        // Significantly increased distance from center
+      flightHeight: 12,        // Further increased vertical movement range
+      speedFactor: 0.12,       // Further reduced for even slower movement
+      directionChangeSpeed: 0.01, // Further reduced for more gentle and slower direction changes
+      
+      // Current movement state
+      pathAngle: 0,            // Current angle in our path
+      verticalOffset: 0,       // Current vertical position
+      lookAtOffset: new THREE.Vector3(0, 0, 0), // Where we're looking
+      
+      // Audio reactivity
       currentSpeed: new THREE.Vector3(0, 0, 0),
-      maxSpeed: 0.05,
-      damping: 0.95,
-      lastUpdate: 0
+      maxSpeed: 0.05,          // Reduced max speed (was 0.1)
+      damping: 0.98            // Increased damping effect (was 0.96)
     };
   }
   
@@ -114,10 +161,10 @@ class GalaxyVisualization extends BaseVisualization {
     if (!this.scene) {
       this.scene = new THREE.Scene();
       
-      // Initialize camera
+      // Initialize camera with wider field of view and further distance
       const aspectRatio = dimensions.width / dimensions.height;
-      this.camera = new THREE.PerspectiveCamera(60, aspectRatio, 0.1, 1000);
-      this.camera.position.z = 25;
+      this.camera = new THREE.PerspectiveCamera(55, aspectRatio, 0.1, 1000);
+      this.camera.position.z = 60; // Significantly increased distance for more zoomed out view
       
       // Initialize renderer
       this.renderer = new THREE.WebGLRenderer({
@@ -155,12 +202,12 @@ class GalaxyVisualization extends BaseVisualization {
     const renderPass = new RenderPass(this.scene, this.camera);
     this.composer.addPass(renderPass);
     
-    // Add bloom pass for glow effects
+    // Add bloom pass for glow effects - significantly reduced strength
     const bloomPass = new UnrealBloomPass(
       new THREE.Vector2(dimensions.width, dimensions.height),
-      1.5,  // strength
-      0.4,  // radius
-      0.85  // threshold
+      0.5,  // strength - further reduced
+      0.7,  // radius - increased for even softer glow
+      0.85  // threshold - increased to prevent center from glowing too much
     );
     this.composer.addPass(bloomPass);
     
@@ -184,17 +231,17 @@ class GalaxyVisualization extends BaseVisualization {
     this.createNebulaEffects();
     this.createDustClouds();
     
-    // Add ambient light
-    const ambientLight = new THREE.AmbientLight(0x333355);
+    // Add ambient light - reduced intensity
+    const ambientLight = new THREE.AmbientLight(0x222233);
     this.scene.add(ambientLight);
     
-    // Add point lights
-    const galaxyLight = new THREE.PointLight(0x7080ff, 5, 50);
-    galaxyLight.position.set(2, 1, 15);
+    // Add point lights - moved away from center
+    const galaxyLight = new THREE.PointLight(0x7080ff, 3, 70);
+    galaxyLight.position.set(15, 8, 20);  // Moved away from center
     this.scene.add(galaxyLight);
     
-    const accentLight = new THREE.PointLight(0xff8080, 3, 30);
-    accentLight.position.set(-5, -3, 10);
+    const accentLight = new THREE.PointLight(0xff8080, 2, 50);
+    accentLight.position.set(-18, -12, 15);  // Moved away from center
     this.scene.add(accentLight);
   }
   
@@ -296,70 +343,17 @@ class GalaxyVisualization extends BaseVisualization {
   
   /**
    * Create the central galaxy core
+   * Currently disabled to test visualization without the central orb
    */
   createGalaxyCore() {
-    // Create the central bright core
-    const coreGeometry = new THREE.SphereGeometry(3, 32, 32);
-    const coreMaterial = new THREE.MeshPhongMaterial({
-      color: 0x8090ff,
-      emissive: 0x5060af,
-      specular: 0xffffff,
-      shininess: 10,
-      transparent: true,
-      opacity: 0.7
-    });
+    // Core is temporarily disabled to test visualization without the central orb
+    // Create empty objects to maintain code compatibility
+    this.galaxyCore = new THREE.Object3D();
+    this.galaxyCoreGlow = new THREE.Object3D();
     
-    const core = new THREE.Mesh(coreGeometry, coreMaterial);
-    this.scene.add(core);
-    
-    // Add core glow
-    const coreGlowGeometry = new THREE.SphereGeometry(4, 32, 32);
-    const coreGlowMaterial = new THREE.ShaderMaterial({
-      uniforms: {
-        time: { value: 0 },
-        intensity: { value: 1.0 },
-        color: { value: new THREE.Color(0x4060ff) }
-      },
-      vertexShader: `
-        varying vec3 vNormal;
-        varying vec3 vPosition;
-        
-        void main() {
-          vNormal = normalize(normalMatrix * normal);
-          vPosition = position;
-          gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
-        }
-      `,
-      fragmentShader: `
-        uniform float time;
-        uniform float intensity;
-        uniform vec3 color;
-        varying vec3 vNormal;
-        varying vec3 vPosition;
-        
-        void main() {
-          // Fresnel effect for edge glow
-          vec3 viewDir = normalize(vPosition - cameraPosition);
-          float fresnel = pow(1.0 - abs(dot(vNormal, viewDir)), 2.0);
-          
-          // Pulsating glow
-          float pulse = (sin(time * 1.5) * 0.5 + 0.5) * 0.3 + 0.7;
-          
-          vec3 finalColor = color * fresnel * pulse * intensity;
-          gl_FragColor = vec4(finalColor, fresnel * 0.7);
-        }
-      `,
-      transparent: true,
-      blending: THREE.AdditiveBlending,
-      side: THREE.BackSide
-    });
-    
-    const coreGlow = new THREE.Mesh(coreGlowGeometry, coreGlowMaterial);
-    this.scene.add(coreGlow);
-    
-    // Store references
-    this.galaxyCore = core;
-    this.galaxyCoreGlow = coreGlow;
+    // Do not add to scene for now
+    // this.scene.add(this.galaxyCore);
+    // this.scene.add(this.galaxyCoreGlow);
   }
   
   /**
@@ -385,8 +379,20 @@ class GalaxyVisualization extends BaseVisualization {
       const armData = new Float32Array(particlesPerArm * 2); // For custom data (radius, angle)
       
       for (let i = 0; i < particlesPerArm; i++) {
-        // Calculate particle position in spiral pattern
-        const radiusBase = 3 + Math.pow(Math.random(), 0.5) * 15; // More particles closer to center
+        // Calculate particle position in spiral pattern with a hole in the center
+        // Create a ring distribution with minimal particles in center
+        const minRadius = 10; // Create a large empty space in the center
+        let radiusBase;
+        
+        // Most particles should be in the outer regions
+        if (Math.random() < 0.9) {
+          // 90% of particles in mid to outer regions
+          radiusBase = minRadius + Math.random() * 15;
+        } else {
+          // Only 10% of particles in inner regions, and still avoiding center
+          radiusBase = 5 + Math.random() * 5; 
+        }
+        
         const armWidth = 0.6 + (radiusBase / 15) * 2.5;
         const radiusVariation = (Math.random() - 0.5) * armWidth;
         const radius = radiusBase + radiusVariation;
@@ -863,6 +869,13 @@ class GalaxyVisualization extends BaseVisualization {
       return;
     }
     
+    // Apply camera distance from config (allows real-time adjustment)
+    if (this.camera && this.config.cameraDistance) {
+      // Don't directly set position.z as it would override the camera animation
+      // Instead, adjust the flight radius which controls how far we fly
+      this.cameraAnimation.flightRadius = this.config.cameraDistance * 0.75;
+    }
+    
     // Extract audio data
     let bassLevel = 0;
     let midLevel = 0;
@@ -881,16 +894,27 @@ class GalaxyVisualization extends BaseVisualization {
       this.colorShiftFactor = midLevel * 0.5;
       this.emissionIntensity = 0.7 + highLevel * 0.3;
       
-      // On beat, add camera impulse
-      if (isBeat && bassLevel > 0.7) {
-        const cameraImpulse = 0.2 + bassLevel * 0.3;
-        this.cameraAnimation.currentSpeed.z = -cameraImpulse;
+      // On beat, add gentle camera impulse with improved damping
+      if (isBeat && bassLevel > 0.6) {
+        // Reduced impulse strength with gradual damping
+        const cameraImpulse = 0.1 + bassLevel * 0.15; // Reduced by ~50%
+        
+        // Apply a gentler impulse in various directions for more natural movement
+        this.cameraAnimation.currentSpeed.z -= cameraImpulse * 0.8;
+        this.cameraAnimation.currentSpeed.x += (Math.random() - 0.5) * cameraImpulse * 0.3;
+        this.cameraAnimation.currentSpeed.y += (Math.random() - 0.5) * cameraImpulse * 0.3;
       }
     }
     
     // Update animation time
     const time = this.clock.getElapsedTime();
     const frameDelta = this.clock.getDelta();
+    
+    // Apply camera speed from config
+    if (this.cameraAnimation) {
+      this.cameraAnimation.speedFactor = this.config.cameraSpeed;
+      this.cameraAnimation.damping = this.config.cameraDamping;
+    }
     
     // Update background stars
     if (this.backgroundStars && this.backgroundStars.material.uniforms) {
@@ -900,11 +924,8 @@ class GalaxyVisualization extends BaseVisualization {
       this.backgroundStars.rotation.x += 0.00005;
     }
     
-    // Update galaxy core
-    if (this.galaxyCoreGlow && this.galaxyCoreGlow.material.uniforms) {
-      this.galaxyCoreGlow.material.uniforms.time.value = time;
-      this.galaxyCoreGlow.material.uniforms.intensity.value = 1 + bassLevel * 1.5;
-    }
+    // Skip galaxy core updates since we've removed it
+    // The core reference exists but doesn't have material/uniforms
     
     // Update galaxy particle systems
     for (const galaxy of this.galaxyParticles) {
@@ -943,9 +964,11 @@ class GalaxyVisualization extends BaseVisualization {
       this.dustParticles.material.uniforms.audioIntensity.value = (bassLevel + midLevel) * 0.5;
     }
     
-    // Update post-processing effects
+    // Update post-processing effects with values from config
     if (this.bloomPass) {
-      this.bloomPass.strength = 1.5 + bassLevel * 1.5;
+      // Apply the config values with audio reactivity
+      this.bloomPass.strength = this.config.bloomStrength + bassLevel * 0.8;
+      this.bloomPass.threshold = this.config.bloomThreshold + bassLevel * 0.1;
     }
     
     if (this.chromaticPass) {
@@ -957,42 +980,74 @@ class GalaxyVisualization extends BaseVisualization {
   }
   
   /**
-   * Update camera position with smooth animation
+   * Update camera position with smooth animation - fly through the cosmic scene
    */
   updateCamera(deltaTime) {
-    // Apply damping to current speed
-    this.cameraAnimation.currentSpeed.multiplyScalar(this.cameraAnimation.damping);
-    
-    // Calculate new target position with subtle movement
     const time = this.clock.getElapsedTime();
+    const cam = this.cameraAnimation;
     
-    // Gently move target in a figure-8 pattern
-    const xMovement = Math.sin(time * 0.1) * 5;
-    const yMovement = Math.sin(time * 0.15) * Math.cos(time * 0.1) * 3;
+    // Update path angle for movement along a complex 3D path
+    cam.pathAngle += cam.directionChangeSpeed * deltaTime * (1 + this.pulseStrength * 0.3);
     
-    this.cameraAnimation.targetPosition.set(
-      xMovement,
-      yMovement, 
-      25 + Math.sin(time * 0.05) * 3
+    // Create a complex flight path through space
+    // Use multiple sine waves with different frequencies to create a natural-feeling path
+    const xFactor = Math.sin(cam.pathAngle * 0.5) * Math.cos(cam.pathAngle * 0.23);
+    const yFactor = Math.cos(cam.pathAngle * 0.3) * Math.sin(cam.pathAngle * 0.7);
+    const zFactor = Math.sin(cam.pathAngle * 0.2) * Math.cos(cam.pathAngle * 0.13);
+    
+    // Calculate new target position that moves through the scene
+    const newTargetX = xFactor * cam.flightRadius;
+    const newTargetY = yFactor * cam.flightRadius;
+    const newTargetZ = zFactor * cam.flightHeight;
+    
+    // Smoothly update target position
+    cam.targetPosition.set(newTargetX, newTargetY, newTargetZ);
+    
+    // Calculate look direction - slightly offset from our movement to create banking effect
+    cam.lookAtOffset.set(
+      Math.sin(cam.pathAngle * 0.5 + 0.2) * 5,
+      Math.cos(cam.pathAngle * 0.7 + 0.3) * 5,
+      0
     );
     
-    // Calculate direction to target
+    // Add gentle audio reactivity to camera movement (reduced strength)
+    if (this.pulseStrength > 0.4) {
+      // Add a slight push in the direction we're moving on strong beats
+      // with reduced intensity and smoother response
+      const pulseIntensity = Math.min(this.pulseStrength * 0.5, 0.3); // Cap and reduce intensity
+      cam.currentSpeed.add(
+        new THREE.Vector3(
+          xFactor * 0.005 * pulseIntensity, // Reduced from 0.01
+          yFactor * 0.005 * pulseIntensity, 
+          zFactor * 0.005 * pulseIntensity
+        )
+      );
+    }
+    
+    // Apply damping to current speed
+    cam.currentSpeed.multiplyScalar(cam.damping);
+    
+    // Calculate movement direction 
     const direction = new THREE.Vector3();
-    direction.subVectors(this.cameraAnimation.targetPosition, this.camera.position);
-    direction.multiplyScalar(0.02); // Move 2% of the distance each frame
+    direction.subVectors(cam.targetPosition, this.camera.position);
+    direction.multiplyScalar(0.01 * cam.speedFactor); // Move gradually toward target
     
     // Add direction to current speed, clamped to max speed
-    this.cameraAnimation.currentSpeed.add(direction);
-    
-    if (this.cameraAnimation.currentSpeed.length() > this.cameraAnimation.maxSpeed) {
-      this.cameraAnimation.currentSpeed.normalize().multiplyScalar(this.cameraAnimation.maxSpeed);
+    cam.currentSpeed.add(direction);
+    if (cam.currentSpeed.length() > cam.maxSpeed) {
+      cam.currentSpeed.normalize().multiplyScalar(cam.maxSpeed);
     }
     
     // Apply current speed to camera position
-    this.camera.position.add(this.cameraAnimation.currentSpeed);
+    this.camera.position.add(cam.currentSpeed);
     
-    // Always look at origin
-    this.camera.lookAt(0, 0, 0);
+    // Look at a point that's slightly ahead of our movement direction
+    const lookAtPoint = new THREE.Vector3().addVectors(
+      new THREE.Vector3(0, 0, 0), // Center of the scene
+      cam.lookAtOffset    // Offset to create banking/turning effect
+    );
+    
+    this.camera.lookAt(lookAtPoint);
   }
   
   /**
@@ -1002,8 +1057,9 @@ class GalaxyVisualization extends BaseVisualization {
   drawBackground(ctx, dimensions, audioData, qualitySettings) {
     // Clear the canvas with a very dark background
     // (Three.js will render on top of this)
-    const bg = this.config.colorPalette.background;
-    ctx.fillStyle = `rgba(${bg.r}, ${bg.g}, ${bg.b}, ${bg.a})`;
+    
+    // Use a hardcoded dark color to avoid any potential undefined issues
+    ctx.fillStyle = 'rgba(2, 4, 15, 1)';
     ctx.fillRect(0, 0, dimensions.width, dimensions.height);
   }
   
@@ -1034,6 +1090,102 @@ class GalaxyVisualization extends BaseVisualization {
    */
   drawForeground(ctx, dimensions, audioData, qualitySettings) {
     // Add any 2D overlay effects here if needed
+  }
+  
+  /**
+   * Update configuration based on control panel settings
+   * @param {string} parameter - Parameter name to update
+   * @param {any} value - New value for the parameter
+   */
+  updateConfig(parameter, value) {
+    if (parameter in this.config) {
+      // Clamp value to min/max range if available
+      if (this.controlRanges && this.controlRanges[parameter]) {
+        const range = this.controlRanges[parameter];
+        value = Math.max(range.min, Math.min(range.max, value));
+      }
+      
+      // Update the configuration value
+      this.config[parameter] = value;
+      
+      // Apply changes based on parameter
+      switch (parameter) {
+        case 'cameraDistance':
+          // Don't directly set camera position here, as it will be overridden by animation
+          // Instead we'll use this value in updateElements
+          // The camera position is managed by the flight path animation
+          break;
+          
+        case 'cameraSpeed':
+          // This will be applied in updateElements
+          break;
+          
+        case 'cameraDamping':
+          // This will be applied in updateElements
+          break;
+          
+        case 'bloomStrength':
+          // Update bloom effect strength
+          if (this.bloomPass) {
+            this.bloomPass.strength = this.config.bloomStrength;
+          }
+          break;
+          
+        case 'bloomThreshold':
+          // Update bloom effect threshold
+          if (this.bloomPass) {
+            this.bloomPass.threshold = this.config.bloomThreshold;
+          }
+          break;
+          
+        case 'brightness':
+          // Update overall brightness (affects lights, materials, and post-processing)
+          if (this.scene) {
+            // Update light intensities
+            this.scene.traverse((object) => {
+              if (object.isLight) {
+                // Store original intensity if not already stored
+                if (object.userData.originalIntensity === undefined) {
+                  object.userData.originalIntensity = object.intensity;
+                }
+                // Apply brightness multiplier to original intensity
+                object.intensity = object.userData.originalIntensity * this.config.brightness;
+              }
+            });
+            
+            // Update nebula brightness
+            for (const nebula of this.nebulaGroups) {
+              if (nebula.material && nebula.material.uniforms && nebula.material.uniforms.intensity) {
+                if (nebula.userData === undefined) nebula.userData = {};
+                if (nebula.userData.originalIntensity === undefined) {
+                  nebula.userData.originalIntensity = nebula.baseIntensity;
+                }
+                nebula.baseIntensity = nebula.userData.originalIntensity * this.config.brightness;
+              }
+            }
+            
+            // Update bloom strength based on brightness too
+            if (this.bloomPass) {
+              this.bloomPass.strength = this.config.bloomStrength * (0.8 + this.config.brightness * 0.2);
+            }
+          }
+          break;
+          
+        case 'centerHoleSize':
+          // This would require regenerating particles, which is complex to do at runtime
+          // We'll update this parameter for next time the visualization is created
+          console.log('Center hole size will be applied next time the visualization is created.');
+          break;
+      }
+    }
+  }
+  
+  /**
+   * Get the current configuration
+   * @returns {Object} Current configuration
+   */
+  getConfig() {
+    return this.config;
   }
   
   /**
