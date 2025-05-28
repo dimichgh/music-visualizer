@@ -9,6 +9,7 @@ import FractalVisualization from './FractalVisualization';
 import NightSkyVisualization from './NightSkyVisualization';
 import ConcertVisualization from './ConcertVisualization';
 import GalaxyVisualization from './GalaxyVisualization';
+import AvatarGlowPlantsVisualization from './AvatarGlowPlantsVisualization';
 import BaseVisualization from './BaseVisualization';
 
 // Export visualization classes for direct usage
@@ -19,7 +20,8 @@ export {
   FractalVisualization,
   NightSkyVisualization,
   ConcertVisualization,
-  GalaxyVisualization
+  GalaxyVisualization,
+  AvatarGlowPlantsVisualization
 };
 
 /**
@@ -88,5 +90,6 @@ export default {
   BaseVisualization,
   CosmicVisualization,
   FractalVisualization,
-  GalaxyVisualization
+  GalaxyVisualization,
+  AvatarGlowPlantsVisualization
 };

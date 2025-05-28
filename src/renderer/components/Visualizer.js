@@ -1,6 +1,6 @@
 import React, { useRef, useEffect, useState } from 'react';
 import '../styles/Visualizer.css';
-import { createCosmicVisualization, createFractalVisualization, createNightSkyVisualization, createConcertVisualization, createGalaxyVisualization } from '../visualizationBridge';
+import { createCosmicVisualization, createFractalVisualization, createNightSkyVisualization, createConcertVisualization, createGalaxyVisualization, createAvatarGlowPlantsVisualization } from '../visualizationBridge';
 
 const Visualizer = ({ audioData, theme, isPlaying }) => {
   const canvasRef = useRef(null);
@@ -62,6 +62,10 @@ const Visualizer = ({ audioData, theme, isPlaying }) => {
           break;
         case 'concert':
           visualizationRef.current = createConcertVisualization(ctx, dimensions);
+          break;
+        case 'avatarGlow':
+          visualizationRef.current = createAvatarGlowPlantsVisualization(ctx, dimensions);
+          console.log('Avatar Glow Plants visualization created:', !!visualizationRef.current);
           break;
         default:
           visualizationRef.current = createCosmicVisualization(ctx, dimensions);
