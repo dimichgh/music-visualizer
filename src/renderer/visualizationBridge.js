@@ -11,7 +11,8 @@ import {
   FractalVisualization,
   NightSkyVisualization,
   ConcertVisualization,
-  GalaxyVisualization
+  GalaxyVisualization,
+  AvatarGlowPlantsVisualization
 } from '../visualizations';
 
 // Singleton instance of the visualization manager
@@ -39,6 +40,25 @@ export function getVisualizationManager(container, options = {}) {
  */
 export const createCosmicVisualization = (ctx, dimensions) => {
   const visualization = new CosmicVisualization();
+  
+  visualization.setup(ctx, dimensions);
+  
+  // Return compatible render interface
+  return {
+    render: (audioData) => {
+      visualization.render(ctx, dimensions, audioData);
+    }
+  };
+};
+
+/**
+ * Creates an Avatar Glow Plants-themed visualization
+ * @param {CanvasRenderingContext2D} ctx - Canvas rendering context
+ * @param {Object} dimensions - Canvas dimensions {width, height}
+ * @returns {Object} Visualization object with render method
+ */
+export const createAvatarGlowPlantsVisualization = (ctx, dimensions) => {
+  const visualization = new AvatarGlowPlantsVisualization();
   
   visualization.setup(ctx, dimensions);
   
@@ -204,6 +224,7 @@ export default {
   createNightSkyVisualization,
   createConcertVisualization,
   createGalaxyVisualization,
+  createAvatarGlowPlantsVisualization,
   updateGalaxyConfig,
   getVisualizationManager
 };
